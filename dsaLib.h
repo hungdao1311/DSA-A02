@@ -35,13 +35,17 @@ template <class T>
 struct L1Item {
     T data;
     L1Item<T> *pNext;
-    L1Item() : pNext(NULL) {}
-    L1Item(T &a) : data(a), pNext(NULL) {}
+    L1Item<T> *pChild;
+    L1Item<T> *pTailchild;
+    L1Item() : pNext(NULL), pChild(NULL), pTailchild(NULL) {}
+    L1Item(T &a) : data(a), pNext(NULL), pChild(NULL), pTailchild(NULL) {}
+    int push_child(T&a);
 };
 
 template <class T>
 class L1List {
     L1Item<T>   *_pHead;// The head pointer of linked list
+    L1Item<T>   *_pTail;   // The tail pointer of linked list
     size_t      _size;// number of elements in this list
 public:
     L1List() : _pHead(NULL), _size(0) {}
@@ -53,6 +57,10 @@ public:
     }
     size_t  getSize() {
         return _size;
+    }
+
+    L1Item<T>* getTail(){
+        return this-> _pTail;
     }
 
     T&      at(int i);
@@ -95,14 +103,48 @@ template <class T>
 int L1List<T>::push_back(T &a) {
     if (_pHead == NULL) {
         _pHead = new L1Item<T>(a);
+        _pTail = _pHead;
+        _pHead->pTailchild = _pHead;
+
     }
     else {
-        L1Item<T>   *p = _pHead;
-        while (p->pNext) p = p->pNext;
-        p->pNext = new L1Item<T>(a);
+        _pTail->pNext = new L1Item<T>(a);
+        _pTail->pNext->pTailchild = _pTail->pNext;
+        _pTail = _pTail->pNext;
     }
-
     _size++;
+    return 0;
+}
+
+
+template<class T>
+int L1Item<T>::push_child(T &a) {
+    pTailchild->pChild = new L1Item<T>(a);
+    pTailchild = pTailchild->pChild;
+    return 0;
+}
+
+
+template<class T>
+int L1List<T>::remove(int i) {
+    L1Item<T>* temp = new L1Item<T>();
+    if(i == 0){
+        temp = _pHead;
+        _pHead = _pHead->pNext;
+        delete temp;
+        _size--;
+        return 0;
+    }
+    L1Item<T>* p = this->_pHead;
+    int j = 0;
+    while (i-1>j){
+        p = p->pNext;
+        j++;
+    }
+    temp = p->pNext;
+    p->pNext = p->pNext->pNext;
+    delete temp;
+    _size--;
     return 0;
 }
 
@@ -156,6 +198,26 @@ int L1List<T>::removeLast() {
     return -1;
 }
 
+//Get by index
+template <class T>
+T& L1List<T>::operator[](int i) {
+    int j = 0;
+    L1Item<T>* temp = _pHead;
+    while(i != j){
+        temp = temp->pNext;
+        j++;
+    }
+    return temp->data;
+}
+
+template <class T>
+L1List<T>::~L1List() {
+    L1Item<T>* temp = _pHead;
+    while(temp != NULL){
+        temp=temp->pNext;
+        delete temp;
+    }
+}
 /************************************************************************
  * This section is for AVL tree
  ************************************************************************/

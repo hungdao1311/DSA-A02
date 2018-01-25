@@ -19,9 +19,7 @@ void loadRequests(char* fName, L1List<VM_Request> &rList) {
     while(getline(file,str,'\n')){
         istringstream ss(str);
         while(ss >> str1) {
-            if(str1[str1.length()-1] == ';'){
-                str1[str1.length()-1] = '\0';
-            }
+            
             VM_Request temp(str1);
             rList.push_back(temp);
         }

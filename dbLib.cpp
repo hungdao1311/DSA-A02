@@ -33,22 +33,27 @@ void loadVMDB(char* fName, L1List<VM_Record> &db) {
     if (inFile) {
         string line;
         getline(inFile , line);// skip the first line
-        VM_Record record;
-
-        db.insertHead(record);/// add dummy object
-
+        VM_Record temp;
+        L1Item<VM_Record> *tempDB;
         while (getline(inFile , line)) {
             /// On Windows, lines on file ends with \r\n. So you have to remove \r
             if (line[line.length() - 1] == '\r')
                 line.erase(line.length() - 1);
             if (line.length() > 0) {
-                if (parseVMRecord((char*)line.data(), db[0]))/// parse and store data directly
-                    db.insertHead(record);/// add dummy object for next turn
+                parseVMRecord((char*)line.data(), temp);
             }
+        
+        tempDB = db.getTail();
+        if(!tempDB){
+            db.push_back(temp);
+            continue;
         }
-        db.removeHead();/// remove the first dummy
-
-        db.reverse();
+        if (strcmp(tempDB->data.id, temp.id) == 0) {
+            tempDB->push_child(temp);
+        } else {
+            db.push_back(temp);
+        }
+        }
         inFile.close();
     }
     else {
@@ -61,30 +66,30 @@ bool parseVMRecord(char *pBuf, VM_Record &bInfo) {
     struct tm tm;
     double empty;
 
-    VM_Record temp;
-
     //read all except time
 
     sscanf(pBuf, "%lf,%[^','],%[^','],%lf,%lf,%lf,%lf,%lf,%lf",
-           &empty, time, temp.id, &temp.longitude, &temp.latitude, &empty, &empty, &empty, &empty);
+           &empty, time, bInfo.id, &bInfo.longitude, &bInfo.latitude, &empty, &empty, &empty, &empty);
 
     //read time
 
     strptime(time, "%m/%d/%Y %H:%M:%S", &tm);
-    temp.timestamp = timegm(&tm);
+    bInfo.timestamp = timegm(&tm);
 
     //padding ID
-    int j = 4 - strlen(temp.id);
+    int j = 4 - strlen(bInfo.id);
     if (j > 0)
     {
         for (int i = 4; i >= 0; i--)
         {
             if (i - j >= 0)
-                temp.id[i] = temp.id[i - j];
+                bInfo.id[i] = bInfo.id[i - j];
             else
-                temp.id[i] = '0';
+                bInfo.id[i] = '0';
         }
     }
+
+    return true;
 }
 
 void process(L1List<VM_Request>& requestList, L1List<VM_Record>& rList) {
@@ -101,7 +106,9 @@ void process(L1List<VM_Request>& requestList, L1List<VM_Record>& rList) {
 }
 
 void printVMRecord(VM_Record &b) {
-    printf("%s: (%0.5f, %0.5f), %s\n", b.id, b.longitude, b.latitude, ctime(&b.timestamp));
+    char temptime[19];
+    strPrintTime(temptime, b.timestamp);
+    printf("%s: (%0.5f, %0.5f), %s\n", b.id, b.longitude, b.latitude, temptime);
 }
 
 /// This function converts decimal degrees to radians
