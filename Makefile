@@ -1,4 +1,4 @@
-all: dsa171a2
+all: dsa171a2 clean
 
 DEFS = -DAVL_USE_HEIGHT -DUSE_CUSTOME_COMPARE_OPS -DUSE_HASH_ID
 
@@ -12,6 +12,5 @@ dbLib.o: dbLib.cpp dsaLib.h requestLib.h
 	g++ -c dbLib.cpp -std=c++11 $(DEFS)
 processData.o: processData.cpp dsaLib.h requestLib.h dbLib.h
 	g++ -c processData.cpp -std=c++11 $(DEFS)
-
 clean:
-	rm *.o dsa171a2
+	rm *.o
