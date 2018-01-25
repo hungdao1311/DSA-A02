@@ -57,7 +57,34 @@ void loadVMDB(char* fName, L1List<VM_Record> &db) {
 }
 
 bool parseVMRecord(char *pBuf, VM_Record &bInfo) {
-    // TODO: write code to parse a record from given line
+    char time[19];
+    struct tm tm;
+    double empty;
+
+    VM_Record temp;
+
+    //read all except time
+
+    sscanf(pBuf, "%lf,%[^','],%[^','],%lf,%lf,%lf,%lf,%lf,%lf",
+           &empty, time, temp.id, &temp.longitude, &temp.latitude, &empty, &empty, &empty, &empty);
+
+    //read time
+
+    strptime(time, "%m/%d/%Y %H:%M:%S", &tm);
+    temp.timestamp = timegm(&tm);
+
+    //padding ID
+    int j = 4 - strlen(temp.id);
+    if (j > 0)
+    {
+        for (int i = 4; i >= 0; i--)
+        {
+            if (i - j >= 0)
+                temp.id[i] = temp.id[i - j];
+            else
+                temp.id[i] = '0';
+        }
+    }
 }
 
 void process(L1List<VM_Request>& requestList, L1List<VM_Record>& rList) {
